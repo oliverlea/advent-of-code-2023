@@ -1,3 +1,4 @@
+#include "../include/timer.h"
 #include "../include/utils.h"
 
 #include <iostream>
@@ -125,6 +126,7 @@ Input parse_input(const vector<string>& lines) {
 }
 
 long part1(Input& input) {
+    Timer timer;
     long result = numeric_limits<long>().max();
     for (const long seed : input.seeds) {
         long mapped_index = seed;
@@ -143,6 +145,7 @@ long part1(Input& input) {
 }
 
 long part2(Input& input) {
+    Timer timer;
     vector<Range> considerable_ranges(input.seed_ranges.begin(), input.seed_ranges.end());
     vector<Range> next_step_ranges;
     for (const Conversion& conversion : input.conversions) {
@@ -175,16 +178,8 @@ int main() {
     vector<string> lines = read_lines("../input/day5.txt");
     Input input = parse_input(lines);
 
-    auto start1 = chrono::high_resolution_clock::now();
     cout << part1(input) << endl;
-    auto stop1 = chrono::high_resolution_clock::now();
-    auto time1 = chrono::duration_cast<chrono::microseconds>(stop1 - start1);
-    cout << time1.count() << "us" << endl;
 
-    auto start2 = chrono::high_resolution_clock::now();
     cout << part2(input) << endl;
-    auto stop2 = chrono::high_resolution_clock::now();
-    auto time2 = chrono::duration_cast<chrono::microseconds>(stop2 - start2);
-    cout << time2.count() << "us" << endl;
 }
 

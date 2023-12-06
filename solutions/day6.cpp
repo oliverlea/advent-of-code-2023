@@ -1,3 +1,4 @@
+#include "../include/timer.h"
 #include "../include/utils.h"
 
 #include <iostream>
@@ -44,14 +45,7 @@ pair<double, double> quadratic(long a, long b, long c) {
 
 long ways_to_win(long time, long distance) {
     auto [lower, upper] = quadratic(-1, time, -distance);
-
-    long lower_int, upper_int;
-    if (lower == trunc(lower)) lower_int = static_cast<long>(lower) + 1;
-    else lower_int = static_cast<long>(ceil(lower));
-    if (upper == trunc(upper)) upper_int = static_cast<long>(upper) - 1;
-    else upper_int = static_cast<long>(floor(upper));
-
-    return (upper_int - lower_int) + 1;
+    return ((ceil(upper) - 1) - (floor(lower) + 1)) + 1;
 }
 
 long part12(const vector<Race>& races) {
@@ -63,6 +57,7 @@ long part12(const vector<Race>& races) {
 }
 
 long part1(const vector<Race>& races) {
+    Timer timer;
     long result = 1;
     for (const Race& race : races) {
         long possible = 0;
@@ -78,14 +73,14 @@ long part1(const vector<Race>& races) {
 }
 
 long part2(const vector<Race>& races) {
-    string full_race_time;
-    string full_race_distance;
+    Timer timer;
+    ostringstream time_ss, distance_ss;
     for (auto& race : races) {
-        full_race_time += to_string(race.time);
-        full_race_distance += to_string(race.distance);
+        time_ss << race.time;
+        distance_ss << race.distance;
     }
-    long time = stol(full_race_time);
-    long distance = stol(full_race_distance);
+    long time = stol(time_ss.str());
+    long distance = stol(distance_ss.str());
     return ways_to_win(time, distance);
 }
 
