@@ -50,7 +50,6 @@ int cal_strength(const string& cards) {
     }
     sort(freqs.begin(), freqs.end());
 
-    int considered = 0;
     int top = jokers;
     if (!freqs.empty()) {
         top += freqs.back();
