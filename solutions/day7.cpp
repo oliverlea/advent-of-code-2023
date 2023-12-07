@@ -31,7 +31,7 @@ const map<char, int> ranking {
 struct Hand {
     string cards;
     int bid;
-    int hand_strength;
+    int strength;
 };
 
 int cal_strength(const string& cards) {
@@ -70,8 +70,8 @@ int cal_strength(const string& cards) {
 }
 
 bool compare_hand(const Hand& h1, const Hand& h2) {
-    if (h1.hand_strength != h2.hand_strength) 
-        return h1.hand_strength < h2.hand_strength;
+    if (h1.strength != h2.strength) 
+        return h1.strength < h2.strength;
     else {
         for (int i = 0; i < h1.cards.size(); ++i) {
             char l, r;
