@@ -175,12 +175,6 @@ vector<pair<int, int>> find_loop(const Grid& grid) {
     }
 }
 
-int part1(const Grid& grid) {
-    Timer timer;
-    int loop_size = find_loop(grid).size();
-    return std::ceil(loop_size / static_cast<float>(2));
-}
-
 std::ostream& operator<<(std::ostream& os, pair<int, int> const& r) {
     return os << "[" << r.first << ", " << r.second << "]" << endl;
 }
@@ -234,9 +228,9 @@ set<pair<int, int>> outside_area(const int height, const int width, const vector
         }
     }
 
+    // BFS
     set<pair<int, int>> all_outside(outside.begin(), outside.end());
     for (const auto& coord : outside) {
-        cout << "coord: " << coord << endl;
         queue<pair<int, int>> q;
         q.push(coord);
         set<pair<int, int>> encountered;
@@ -244,7 +238,6 @@ set<pair<int, int>> outside_area(const int height, const int width, const vector
         encountered.insert(coord);
         int i = 0;
         while (!q.empty()) {
-            // cout << "iter" << endl;
             pair<int, int> next = q.front();
             q.pop();
 
@@ -252,68 +245,81 @@ set<pair<int, int>> outside_area(const int height, const int width, const vector
             for (const auto& c : surrounded) {
                 if (all_outside.find(c) == all_outside.end() && encountered.find(c) == encountered.end() && loop.find(c) == loop.end()) {
                     encountered.insert(c);
-                    // cout << "pushing: " << c << endl;
                     q.push(c);
                 }
             }
-            // ++i;
-            // if (i == 1000) break;
         }
         all_outside.insert(encountered.begin(), encountered.end());
     }
     return all_outside;
 }
 
+void print_grid(const vector<pair<int, int>>& loop, int height, int width) {
+    set<pair<int, int>> loop_set(loop.begin(), loop.end());
+    for (int row = 0; row < height; ++row) {
+        for (int col = 0; col < width; ++col) {
+            bool looped = loop_set.find({col, row}) != loop_set.end();
+            cout << (looped ? "O" : ".");
+        }
+        cout << endl;
+    }
+}
+
+int part1(const Grid& grid) {
+    Timer timer;
+    int loop_size = find_loop(grid).size();
+    return std::ceil(loop_size / static_cast<float>(2));
+}
+
 int part2(const Grid& grid) {
+    Timer timer;
     vector<pair<int, int>> loop = find_loop(grid);
 
+    // double the size of the grid to account for pipes squeezing
     vector<pair<int, int>> loop_double;
-    vector<vector<bool>> double_grid;
     for (int i = 0; i < grid.get_height() * 2; ++i) {
-        double_grid.push_back(vector<bool>(grid.get_width() * 2));
+        vector<bool> row(grid.get_width() * 2, false);
     }
 
-    loop_double.push_back({loop[0].second * 2, loop[0].first * 2});
-    double_grid[loop[0].second * 2][loop[0].first * 2] = true;
-    for (int i = 1; i < loop.size(); ++i) {
-        const auto& cur = loop[i];
+    loop_double.push_back({loop[0].first * 2, loop[0].second * 2});
+    for (int i = 1; i < loop.size() + 1; ++i) {
+        const auto& cur = i == loop.size() ? loop[0] : loop[i];
+        const auto& prev = i == loop.size() ? loop[loop.size() - 1] : loop[i - 1];
         const pair<int, int> cur_double = {cur.first * 2, cur.second * 2};
         // fill in gap from previous section of loop
-        const auto& prev = loop[i - 1];
         if (prev.first < cur.first) {
             // a move from left to right
-            double_grid[cur_double.second][cur_double.first - 1] = true;
-            loop_double.push_back({cur_double.second, cur_double.first - 1});
+            loop_double.push_back({cur_double.first - 1, cur_double.second});
         } else if (prev.first > cur.first) {
             // right -> left
-            double_grid[cur_double.second][cur_double.first + 1] = true;
-            loop_double.push_back({cur_double.second, cur_double.first + 1});
+            loop_double.push_back({cur_double.first + 1, cur_double.second});
         } else if (prev.second < cur.second) {
             // up -> down
-            double_grid[cur_double.second - 1][cur_double.first] = true;
-            loop_double.push_back({cur_double.second - 1, cur_double.first});
+            loop_double.push_back({cur_double.first, cur_double.second - 1});
         } else {
             // down -> up
-            double_grid[cur_double.second + 1][cur_double.first] = true;
-            loop_double.push_back({cur_double.second + 1, cur_double.first});
+            loop_double.push_back({cur_double.first, cur_double.second + 1});
         }
         loop_double.push_back({cur_double});
-        double_grid[cur_double.second][cur_double.first] = true;
     }
-    cout << "original=" << loop.size() << ", doubled=" << loop_double.size() << endl;
+    // print_grid(loop, grid.get_height(), grid.get_width());
+    print_grid(loop_double, grid.get_height() * 2, grid.get_width() * 2);
 
-    set<pair<int, int>> outside = outside_area(double_grid.size(), double_grid[0].size(), loop_double);
-    // keep only those that would exist at the original grid coordinates
+    // search from the outside in to find the area outside of the grid
+    set<pair<int, int>> outside = outside_area(grid.get_height() * 2, grid.get_width() * 2, loop_double);
+    // keep only those that would exist at the original grid coordinates that are not
+    // part of the loop and not on the outside
     set<pair<int, int>> loop_double_set(loop_double.begin(), loop_double.end());
     set<pair<int, int>> inside;
-    for (int row = 0; row < double_grid.size(); row += 2) {
-        for (int col = 0; col < double_grid[0].size(); col += 2) {
+    for (int row = 0; row < grid.get_height() * 2; row += 2) {
+        for (int col = 0; col < grid.get_width() * 2; col += 2) {
             const pair<int, int> coord = {col, row};
             if (outside.find(coord) == outside.end() && loop_double_set.find(coord) == loop_double_set.end()) {
                 inside.insert(coord);
             }
         }
     }
+    // hope for the best
     return inside.size();
 }
 
