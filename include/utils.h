@@ -20,3 +20,15 @@ void replace_strings(std::string& s, const std::string& from, const std::string&
         start_pos += to.length();
     }
 }
+
+struct pair_hash {
+    std::size_t operator()(const std::pair<int, int>& p) const {
+        return (p.first * 1000000) + p.second;
+        // auto h1 = std::hash<int>{}(p.first);
+        // auto h2 = std::hash<int>{}(p.second);
+
+        // // Mainly for demonstration purposes, i.e. works but is overly simple
+        // // In the real world, use sth. like boost.hash_combine
+        // return h1 ^ h2;
+    }
+};
