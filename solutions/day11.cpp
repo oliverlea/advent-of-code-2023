@@ -55,6 +55,7 @@ vector<loc> galaxy_locations(const vector<string>& input, int expansion, int hei
 }
 
 long long galaxy_distances(const vector<string>& input, int expansion, int height, int width) {
+    Timer timer;
     vector<loc> galaxies = galaxy_locations(input, expansion, height, width);
     long long distances = 0;
     for (int i = 0; i < galaxies.size(); ++i) {
