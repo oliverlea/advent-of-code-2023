@@ -45,15 +45,20 @@ inline int row_distance(const grid& g, int x, int y) {
     return smudged ? 1 : 0;
 }
 
-int reflects_hor(const grid& g) {
+int reflects_hor(const grid& g, bool require_smudge) {
     int pi = 0;
     for (int i = 1; i < g.size(); ++i) {
         int ci = i;
-        while (row_distance(g, pi, ci) == 0) {
+        bool smudged = !require_smudge;
+        int dist = 0;
+        while ((dist = row_distance(g, pi, ci)) <= ((require_smudge && !smudged) ? 1 : 0)) {
+            if (dist > 0) smudged = true;
             --pi;
             ++ci;
             if (pi < 0 || ci >= g.size()) {
-                return i;
+                if (require_smudge && smudged) return i;
+                if (!require_smudge) return i;
+                break;
             }
         } 
         pi = i;
@@ -74,15 +79,20 @@ inline int col_distance(const grid& g, int x, int y) {
     return smudged ? 1 : 0;
 }
 
-int reflects_ver(const grid& g) {
+int reflects_ver(const grid& g, bool require_smudge) {
     int pi = 0;
     for (int i = 1; i < g[0].size(); ++i) {
         int ci = i;
-        while (col_distance(g, pi, ci) == 0) {
+        bool smudged = !require_smudge;
+        int dist = 0;
+        while ((dist = col_distance(g, pi, ci)) <= ((require_smudge && !smudged) ? 1 : 0)) {
+            if (dist > 0) smudged = true;
             --pi;
             ++ci;
             if (pi < 0 || ci >= g[0].size()) {
-                return i;
+                if (require_smudge && smudged) return i;
+                if (!require_smudge) return i;
+                break;
             }
         } 
         pi = i;
@@ -90,14 +100,15 @@ int reflects_ver(const grid& g) {
     return -1;
 }
 
-long part1(const vector<grid>& grids) {
+long solve(const vector<grid>& grids, bool require_smudge) {
+    Timer timer;
     long result = 0;
     for (const grid& g : grids) {
-        int hor_index = reflects_hor(g);
+        int hor_index = reflects_hor(g, require_smudge);
         if (hor_index != -1) {
             result += hor_index * 100;
         } else {
-            int col_index = reflects_ver(g);
+            int col_index = reflects_ver(g, require_smudge);
             if (col_index != -1) {
                 result += col_index;
             }
@@ -109,5 +120,6 @@ long part1(const vector<grid>& grids) {
 int main() {
     vector<string> lines = read_lines("../input/day13.txt");
     vector<grid> grids = parse(lines);
-    cout << part1(grids) << endl;
+    cout << solve(grids, false) << endl;
+    cout << solve(grids, true) << endl;
 }
